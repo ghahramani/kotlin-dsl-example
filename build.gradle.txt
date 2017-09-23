@@ -1,0 +1,110 @@
+buildscript {
+	ext {
+		kotlinVer = '1.1.4-3'
+		kotlinLoggingVer = '1.4.6'
+		logbackVer = '1.2.3'
+		jAnsiVer = '1.16'
+
+		junitJupiterVer = '5.0.0'
+		junitPlatformVer = '1.0.0'
+
+		versionPluginVer = '0.15.0'
+		shadowPluginVer = '2.0.1'
+		dockerPluginVer = '0.13.0'
+	}
+
+	repositories {
+		jcenter()
+		maven { url 'https://plugins.gradle.org/m2/' }
+	}
+
+	dependencies {
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVer"
+		classpath "com.github.jengelman.gradle.plugins:shadow:$shadowPluginVer"
+		// gradle dependencyUpdates -Drevision=release
+		classpath "com.github.ben-manes:gradle-versions-plugin:$versionPluginVer"
+		classpath "gradle.plugin.com.palantir.gradle.docker:gradle-docker:$dockerPluginVer"
+		classpath "org.junit.platform:junit-platform-gradle-plugin:$junitPlatformVer"
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'idea'
+apply plugin: 'kotlin'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'org.junit.platform.gradle.plugin'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'com.github.ben-manes.versions'
+apply plugin: 'com.palantir.docker'
+
+group = 'li.barlog.template.kotlin'
+version = '0.1-SNAPSHOT'
+
+mainClassName = 'app.AppKt'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+	kotlinOptions {
+		jvmTarget = "1.8"
+	}
+}
+
+sourceSets {
+	main.java.srcDirs += [file("$buildDir/generated/source/kapt/main")]
+}
+
+repositories {
+	jcenter()
+}
+
+dependencies {
+	compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVer"
+	//compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVer"
+
+	compile "io.github.microutils:kotlin-logging:$kotlinLoggingVer"
+
+	compile "ch.qos.logback:logback-classic:$logbackVer"
+	compile "org.fusesource.jansi:jansi:$jAnsiVer"
+
+	testCompile "org.junit.jupiter:junit-jupiter-api:$junitJupiterVer"
+	testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVer"
+	testRuntime "org.junit.platform:junit-platform-launcher:$junitPlatformVer"
+}
+
+junitPlatform {
+	enableStandardTestTask true
+}
+
+tasks.withType(Test) {
+	maxParallelForks = Runtime.runtime.availableProcessors()
+}
+
+shadowJar {
+	baseName = 'app'
+	classifier = null
+	version = null
+}
+
+wrapper {
+	gradleVersion '4.2'
+}
+
+// https://github.com/palantir/gradle-docker
+// gradle docker
+docker() {
+	dependsOn shadowJar
+	name 'app'
+	tags 'latest'
+	files tasks.shadowJar.archivePath
+	dockerfile file('src/main/docker/Dockerfile')
+	buildArgs([
+		JAVA_OPTS: '-Xms64m -Xmx128m',
+		PORT     : "8080"
+	])
+	pull true
+}
+
+task stage(dependsOn: ['build', 'clean'])
