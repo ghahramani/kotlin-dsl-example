@@ -4,9 +4,6 @@ ARG JAVA_OPTS
 
 COPY app.jar /
 
-EXPOSE \$PORT
-
 CMD java \$JAVA_OPTS \
 	-Djava.security.egd=file:/dev/./urandom \
 	-jar /app.jar \
-\#	--port=\$PORT
