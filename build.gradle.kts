@@ -117,7 +117,7 @@ configure<DockerExtension> {
 		"JAVA_OPTS" to "-Xms64m -Xmx128m"
 	))
 	pull(true)
-	dependsOn(shadowJar)
+	dependsOn(shadowJar, tasks["jar"])
 }
 
 tasks.withType<ShadowJar> {
