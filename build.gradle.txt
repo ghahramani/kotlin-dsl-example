@@ -1,12 +1,12 @@
 buildscript {
 	ext {
-		kotlinVer = '1.1.4-3'
+		kotlinVer = '1.1.51'
 		kotlinLoggingVer = '1.4.6'
 		logbackVer = '1.2.3'
 		jAnsiVer = '1.16'
 
-		junitJupiterVer = '5.0.0'
-		junitPlatformVer = '1.0.0'
+		junitJupiterVer = '5.0.1'
+		junitPlatformVer = '1.0.1'
 
 		versionPluginVer = '0.15.0'
 		shadowPluginVer = '2.0.1'
@@ -89,16 +89,16 @@ shadowJar {
 }
 
 wrapper {
-	gradleVersion '4.2'
+	gradleVersion '4.2.1'
 }
 
 // https://github.com/palantir/gradle-docker
 // gradle docker
-docker() {
+docker {
 	dependsOn shadowJar
 	name 'app'
 	tags 'latest'
-	files tasks.shadowJar.archivePath
+	files shadowJar.outputs
 	dockerfile file('src/main/docker/Dockerfile')
 	buildArgs([
 		JAVA_OPTS: '-Xms64m -Xmx128m',

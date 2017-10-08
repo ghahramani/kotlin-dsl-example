@@ -10,8 +10,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import com.palantir.gradle.docker.DockerExtension
 
 buildscript {
-	val kotlinVer by extra { "1.1.50" }
-	val junitPlatformVer by extra { "1.0.0" }
+	val kotlinVer by extra { "1.1.51" }
+	val junitPlatformVer by extra { "1.0.1" }
 
 	val versionPluginVer = "0.15.0"
 	val shadowPluginVer = "2.0.1"
@@ -40,7 +40,7 @@ val kotlinLoggingVer = "1.4.6"
 val logbackVer = "1.2.3"
 val jAnsiVer = "1.16"
 
-val junitJupiterVer = "5.0.0"
+val junitJupiterVer = "5.0.1"
 
 apply {
 	plugin("org.junit.platform.gradle.plugin")
@@ -110,7 +110,7 @@ build.dependsOn(shadowJar)
 
 configure<DockerExtension> {
 	name = "app"
-	files(shadowJar.archivePath)
+	files(shadowJar.outputs)
 	setDockerfile(file("src/main/docker/Dockerfile"))
 	buildArgs(mapOf(
 		"PORT"   to  "8080",
@@ -131,7 +131,7 @@ tasks.withType<Test> {
 }
 
 task<Wrapper>("wrapper") {
-	gradleVersion = "4.2"
+	gradleVersion = "4.2.1"
 	distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
